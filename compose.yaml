@@ -1,0 +1,37 @@
+networks:
+  app-tier:
+    driver: bridge
+services:
+  kafka-controller-0:
+    container_name: kafka-controller-0
+    environment:
+      KAFKA_CFG_NODE_ID: "0"
+      KAFKA_CFG_PROCESS_ROLES: controller
+      KAFKA_CFG_LISTENERS: CONTROLLER://0.0.0.0:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: CONTROLLER://kafka-controller-0:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-controller-0:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_KRAFT_CLUSTER_ID: ZmViNjFkY2NkNWE4MTFlZm
+    image: "bitnami/kafka:3.9.0"
+    networks:
+      - app-tier
+    restart: unless-stopped
+  kafka-broker-0:
+    container_name: kafka-broker-0
+    depends_on:
+      kafka-controller-0:
+        condition: service_started
+    environment:
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_PROCESS_ROLES: broker
+      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-0:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-controller-0:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_KRAFT_CLUSTER_ID: ZmViNjFkY2NkNWE4MTFlZm
+    image: "bitnami/kafka:3.9.0"
+    networks:
+      - app-tier
+    restart: unless-stopped
